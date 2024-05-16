@@ -1,7 +1,7 @@
 name: o3d
 description: The Flutter 3D objects easy controller ( glb format ) on mobile and web platforms
-version: 3.1.0
-homepage: https://github.com/babakcode/o3d
+version: 1.0.0
+homepage: https://github.com/nguro23/Model_Viewer
 topics:
   - "model"
   - "models3d"
@@ -45,6 +45,7 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+  uses-material-design: true
 
   # To add assets to your package, add an assets section, like this:
   assets:
