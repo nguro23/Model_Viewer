@@ -17,15 +17,17 @@ import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart'
 import 'html_builder.dart';
 import 'o3d_model_viewer.dart';
 
+// The state class for the O3DModelViewer widget.
 class ModelViewerState extends State<O3DModelViewer> {
-  HttpServer? _proxy;
-  WebViewController? _webViewController;
-  late String _proxyURL;
-  List<String> routesRequested = [];
+  HttpServer? _proxy; // The HTTP server used as a proxy.
+  WebViewController? _webViewController; // The controller for the WebView.
+  late String _proxyURL; // The URL for the proxy server.
+  List<String> routesRequested = []; // List of requested routes.
 
   @override
   void initState() {
     super.initState();
+    // Initialize the proxy and the WebView controller asynchronously.
     unawaited(
       _initProxy().then(
         (_) => _initController()
@@ -40,6 +42,7 @@ class ModelViewerState extends State<O3DModelViewer> {
 
   @override
   void dispose() {
+    // Close the proxy server if it is running.
     if (_proxy != null) {
       unawaited(_proxy!.close(force: true));
       _proxy = null;
@@ -49,6 +52,7 @@ class ModelViewerState extends State<O3DModelViewer> {
 
   @override
   Widget build(final BuildContext context) {
+    // Show a loading indicator if the proxy or WebView controller is not ready.
     if (_proxy == null || _webViewController == null) {
       return const Center(
         child: CircularProgressIndicator(
@@ -56,6 +60,7 @@ class ModelViewerState extends State<O3DModelViewer> {
         ),
       );
     }
+    // Return the WebView widget with the configured controller.
     return WebViewWidget(
       // onWebViewCreated: (controller) => _webViewController = controller,
       controller: _webViewController!,
@@ -65,6 +70,7 @@ class ModelViewerState extends State<O3DModelViewer> {
     );
   }
 
+  // Builds the HTML string for the model viewer.
   String _buildHTML(String htmlTemplate) {
     return HTMLBuilder.build(
       htmlTemplate: htmlTemplate,
@@ -130,7 +136,10 @@ class ModelViewerState extends State<O3DModelViewer> {
     );
   }
 
+  // Initializes the WebView controller.
   Future<void> _initController() async {
+    // Define parameters for WebView controller based on platform.
+    // Create platform-specific WebView controller parameters.
     late final PlatformWebViewControllerCreationParams params;
     if (Platform.isAndroid) {
       params = android.AndroidWebViewControllerCreationParams();
@@ -140,17 +149,21 @@ class ModelViewerState extends State<O3DModelViewer> {
     } else {
       params = const PlatformWebViewControllerCreationParams();
     }
+    // Create the WebView controller using the platform-specific parameters.
     final webViewController =
         WebViewController.fromPlatformCreationParams(params);
+    // Set the background color and enable JavaScript mode for the WebView.
     await webViewController.setBackgroundColor(Colors.transparent);
     await webViewController.setJavaScriptMode(JavaScriptMode.unrestricted);
 
     widget.controller?.logger?.call("init config");
 
+    // Set up the navigation delegate to handle navigation requests.
     await webViewController.setNavigationDelegate(
       NavigationDelegate(
         onNavigationRequest: (request) async {
           debugPrint('ModelViewer wants to load: ${request.url}');
+          // Handle iOS-specific navigation.
           if (Platform.isIOS && request.url == widget.iosSrc) {
             await launchUrl(
               Uri.parse(request.url.trimLeft()),
@@ -158,6 +171,7 @@ class ModelViewerState extends State<O3DModelViewer> {
             );
             return NavigationDecision.prevent;
           }
+          // Allow navigation for non-Android platforms and non-intent URLs.
           if (!Platform.isAndroid) {
             return NavigationDecision.navigate;
           }
@@ -165,6 +179,9 @@ class ModelViewerState extends State<O3DModelViewer> {
             return NavigationDecision.navigate;
           }
           try {
+            // Handle Android-specific navigation using intents.
+            // Determine the file URL based on the source.
+
             // Original, just keep as a backup
             // See: https://developers.google.com/ar/develop/java/scene-viewer
             // final intent = android_content.AndroidIntent(
@@ -186,6 +203,7 @@ class ModelViewerState extends State<O3DModelViewer> {
             } else {
               fileURL = p.joinAll([_proxyURL, 'model']);
             }
+            // Create and launch an Android intent for AR viewing
             final intent = android_content.AndroidIntent(
               action: 'android.intent.action.VIEW',
               // Intent.ACTION_VIEW
@@ -218,6 +236,7 @@ class ModelViewerState extends State<O3DModelViewer> {
         },
       ),
     );
+    // Add JavaScript channels to the WebView controller if provided.
     widget.javascriptChannels?.forEach((element) {
       webViewController.addJavaScriptChannel(
         element.name,
@@ -233,6 +252,7 @@ class ModelViewerState extends State<O3DModelViewer> {
     // Future.delayed(const Duration(seconds: 5),() => _webViewController?.loadRequest(Uri.parse('${_proxyURL}model')));
   }
 
+  // Initializes the proxy server.
   Future<void> _initProxy() async {
     try {
       String src = widget.src;
@@ -249,6 +269,7 @@ class ModelViewerState extends State<O3DModelViewer> {
         final port = _proxy!.port;
         _proxyURL = 'http://$host:$port/';
       });
+      // Listen for incoming HTTP requests to the proxy server.
       _proxy!.listen((request) async {
         final response = request.response;
         // if(routesRequested.contains(request.uri.path)){
@@ -262,6 +283,7 @@ class ModelViewerState extends State<O3DModelViewer> {
         switch (request.uri.path) {
           case '/':
           case '/index.html':
+            // Serve the HTML template.
             final htmlTemplate = await rootBundle
                 .loadString('packages/o3d/assets/template.html');
             final html = utf8.encode(_buildHTML(htmlTemplate));
@@ -277,6 +299,8 @@ class ModelViewerState extends State<O3DModelViewer> {
               ..add(html);
             await response.close();
           case '/model-viewer.min.js':
+            // Serve the model-viewer JavaScript file.
+
             final code = await rootBundle
                 .loadString('packages/o3d/assets/model-viewer.min.js');
             final data = utf8.encode(code);
@@ -293,6 +317,8 @@ class ModelViewerState extends State<O3DModelViewer> {
               ..add(data);
             await response.close();
           case '/model':
+            // Redirect to the model file URL or serve the model data.
+
             if (url.isAbsolute && !url.isScheme('file')) {
               await response.redirect(url);
             } else {
@@ -316,6 +342,8 @@ class ModelViewerState extends State<O3DModelViewer> {
               await response.close();
             }
           case '/favicon.ico':
+            // Serve a 404 response for the favicon.ico request.
+
             final text = utf8.encode("Resource '${request.uri}' not found");
 
             widget.controller?.logger?.call(
@@ -328,6 +356,8 @@ class ModelViewerState extends State<O3DModelViewer> {
               ..add(text);
             await response.close();
           default:
+            // Handle other requests.
+
             if (request.uri.isAbsolute) {
               debugPrint('Redirect: ${request.uri}');
               await response.redirect(request.uri);
@@ -359,6 +389,7 @@ class ModelViewerState extends State<O3DModelViewer> {
     }
   }
 
+  // Reads an asset file and returns its content as a Uint8List.
   Future<Uint8List?> _readAsset(String path) async {
     // final tempDir = await p_p.getTemporaryDirectory();
     // String tempPath = tempDir.path;
@@ -382,6 +413,7 @@ class ModelViewerState extends State<O3DModelViewer> {
     }
   }
 
+  // Reads a file and returns its content as a Uint8List.
   Future<Uint8List> _readFile(final String path) async {
     final file = File(path);
 

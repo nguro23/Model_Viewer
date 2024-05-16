@@ -4,102 +4,117 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:o3d/o3d.dart';
 
+// An abstract class for building HTML for a model viewer.
 abstract class HTMLBuilder {
+  // Private constructor to prevent instantiation.
   HTMLBuilder._();
 
+  // Builds an HTML string with various attributes and styles for a model viewer.
   static String build({
     // Attributes
     // Loading Attributes
-    required String src,
-    String htmlTemplate = '',
-    final String? alt,
-    final String? poster,
-    final Loading? loading,
-    final Reveal? reveal,
-    final bool? withCredentials,
+    required String src, // Source URL for the 3D model.
+    String htmlTemplate = '', // HTML template to be used.
+    final String? alt, // Alternate text for the model.
+    final String? poster, // Poster image URL.
+    final Loading? loading, // Loading behavior for the model.
+    final Reveal? reveal, // Reveal behavior for the model.
+    final bool? withCredentials, // Whether to include credentials in requests.
+
     // AR Attributes
-    final bool? ar,
-    final List<String>? arModes,
-    final ArScale? arScale,
-    final ArPlacement? arPlacement,
-    String? iosSrc,
-    final bool? xrEnvironment,
+    final bool? ar, // Enable augmented reality.
+    final List<String>? arModes, // Modes for augmented reality.
+    final ArScale? arScale, // Scale for augmented reality.
+    final ArPlacement? arPlacement, // Placement for augmented reality.
+    String? iosSrc, // iOS-specific source URL.
+    final bool? xrEnvironment, // Enable XR environment.
+
     // Staging & Cameras Attributes
-    final bool? cameraControls,
-    final bool? disablePan,
-    final bool? disableTap,
-    final TouchAction? touchAction,
-    final bool? disableZoom,
-    final int? orbitSensitivity,
-    final bool? autoRotate,
-    final int? autoRotateDelay,
-    final String? rotationPerSecond,
-    final InteractionPrompt? interactionPrompt,
-    final InteractionPromptStyle? interactionPromptStyle,
-    final num? interactionPromptThreshold,
-    final String? cameraOrbit,
-    final String? cameraTarget,
-    final String? fieldOfView,
-    final String? maxCameraOrbit,
-    final String? minCameraOrbit,
-    final String? maxFieldOfView,
-    final String? minFieldOfView,
-    final num? interpolationDecay,
+    final bool? cameraControls, // Enable camera controls.
+    final bool? disablePan, // Disable pan controls.
+    final bool? disableTap, // Disable tap controls.
+    final TouchAction? touchAction, // Touch action behavior.
+    final bool? disableZoom, // Disable zoom controls.
+    final int? orbitSensitivity, // Sensitivity of orbit controls.
+    final bool? autoRotate, // Enable auto-rotation.
+    final int? autoRotateDelay, // Delay before auto-rotation starts.
+    final String? rotationPerSecond, // Rotation speed per second.
+    final InteractionPrompt? interactionPrompt, // Interaction prompt behavior.
+    final InteractionPromptStyle?
+        interactionPromptStyle, // Style of interaction prompt.
+    final num? interactionPromptThreshold, // Threshold for interaction prompt.
+    final String? cameraOrbit, // Initial camera orbit position.
+    final String? cameraTarget, // Initial camera target position.
+    final String? fieldOfView, // Field of view.
+    final String? maxCameraOrbit, // Maximum camera orbit.
+    final String? minCameraOrbit, // Minimum camera orbit.
+    final String? maxFieldOfView, // Maximum field of view.
+    final String? minFieldOfView, // Minimum field of view.
+    final num? interpolationDecay, // Interpolation decay rate.
+
     // Lighting & Env Attributes
-    final String? skyboxImage,
-    final String? environmentImage,
-    final num? exposure,
-    final num? shadowIntensity,
-    final num? shadowSoftness,
+    final String? skyboxImage, // Skybox image URL.
+    final String? environmentImage, // Environment image URL.
+    final num? exposure, // Exposure level.
+    final num? shadowIntensity, // Shadow intensity.
+    final num? shadowSoftness, // Shadow softness.
+
     // Animation Attributes
-    final String? animationName,
-    final num? animationCrossfadeDuration,
-    final bool? autoPlay,
+    final String? animationName, // Name of the animation.
+    final num? animationCrossfadeDuration, // Crossfade duration for animations.
+    final bool? autoPlay, // Enable auto-play for animations.
+
     // Scene Graph Attributes
-    final String? variantName,
-    final String? orientation,
-    final String? scale,
+    final String? variantName, // Variant name.
+    final String? orientation, // Orientation of the model.
+    final String? scale, // Scale of the model.
 
     // CSS Styles
-    final Color backgroundColor = Colors.transparent,
+    final Color backgroundColor = Colors.transparent, // Background color.
 
     // Annotations CSS
-    final num? minHotspotOpacity,
-    final num? maxHotspotOpacity,
+    final num? minHotspotOpacity, // Minimum opacity for hotspots.
+    final num? maxHotspotOpacity, // Maximum opacity for hotspots.
 
     // Others
-    final String? innerModelViewerHtml,
-    final String? relatedCss,
-    final String? relatedJs,
-    required final String id,
-    final bool? debugLogging,
+    final String? innerModelViewerHtml, // Inner HTML for the model viewer.
+    final String? relatedCss, // Related CSS to be included.
+    final String? relatedJs, // Related JavaScript to be included.
+    required final String id, // ID for the model viewer element.
+    final bool? debugLogging, // Enable debug logging.
   }) {
+    // Replace the placeholder in the HTML template with the related CSS if provided.
     if (relatedCss != null) {
       // ignore: parameter_assignments
       htmlTemplate = htmlTemplate.replaceFirst('/* other-css */', relatedCss);
     }
 
+    // Adjust the src for web builds if it's not a full URL.
     if (kIsWeb) {
       if (!src.trim().startsWith("http")) {
         src = kReleaseMode || kProfileMode ? 'assets/$src' : src;
       }
     }
 
+    // Build the <model-viewer> HTML element.
     final modelViewerHtml = StringBuffer()
       ..write('<model-viewer')
       // Attributes
       // Loading Attributes
       // src
       ..write(' src="${htmlEscape.convert(src)}"');
-    // alt
+
+    // Add alt attribute if provided.
     if (alt != null) {
       modelViewerHtml.write(' alt="${htmlEscape.convert(alt)}"');
     }
-    // poster
+
+    // Add poster attribute if provided.
     if (poster != null) {
       modelViewerHtml.write(' poster="${htmlEscape.convert(poster)}"');
     }
-    // loading
+
+    // Add loading attribute if provided.
     if (loading != null) {
       switch (loading) {
         case Loading.auto:
@@ -110,7 +125,8 @@ abstract class HTMLBuilder {
           modelViewerHtml.write(' loading="eager"');
       }
     }
-    // reveal
+
+    // Add reveal attribute if provided.
     if (reveal != null) {
       switch (reveal) {
         case Reveal.auto:
@@ -121,22 +137,25 @@ abstract class HTMLBuilder {
           modelViewerHtml.write(' reveal="manual"');
       }
     }
-    // with-credentials
+
+    // Add with-credentials attribute if true.
     if (withCredentials ?? false) {
       modelViewerHtml.write(' with-credentials');
     }
 
     // Augmented Reality Attributes
-    // ar
+    // Add ar attribute if true.
     if (ar ?? false) {
       modelViewerHtml.write(' ar');
     }
-    // ar-modes
+
+    // Add ar-modes attribute if provided.
     if (arModes != null) {
       modelViewerHtml
           .write(' ar-modes="${htmlEscape.convert(arModes.join(' '))}"');
     }
-    // ar-scale
+
+    // Add ar-scale attribute if provided.
     if (arScale != null) {
       switch (arScale) {
         case ArScale.auto:
@@ -145,7 +164,8 @@ abstract class HTMLBuilder {
           modelViewerHtml.write(' ar-scale="fixed"');
       }
     }
-    // ar-placement
+
+    // Add ar-placement attribute if provided.
     if (arPlacement != null) {
       switch (arPlacement) {
         case ArPlacement.floor:
@@ -154,32 +174,37 @@ abstract class HTMLBuilder {
           modelViewerHtml.write(' ar-placement="wall"');
       }
     }
-    // ios-src
+
+    // Add ios-src attribute if provided.
     if (iosSrc != null) {
       if (!iosSrc.trim().startsWith("http") && kIsWeb) {
         iosSrc = kReleaseMode || kProfileMode ? 'assets/$iosSrc' : iosSrc;
       }
       modelViewerHtml.write(' ios-src="${htmlEscape.convert(iosSrc)}"');
     }
-    // xr-environment
+
+    // Add xr-environment attribute if true.
     if (xrEnvironment ?? false) {
       modelViewerHtml.write(' xr-environment');
     }
 
     // Staging & Cameras Attributes
-    // camera-controls
+    // Add camera-controls attribute if true.
     if (cameraControls ?? false) {
       modelViewerHtml.write(' camera-controls');
     }
-    // disable-pan
+
+    // Add disable-pan attribute if true.
     if (disablePan ?? false) {
       modelViewerHtml.write(' disable-pan');
     }
-    // disable-tap
+
+    // Add disable-tap attribute if true.
     if (disableTap ?? false) {
       modelViewerHtml.write(' disable-tap');
     }
-    // touch-action
+
+    // Add touch-action attribute if provided.
     if (touchAction != null) {
       switch (touchAction) {
         case TouchAction.none:
@@ -190,29 +215,35 @@ abstract class HTMLBuilder {
           modelViewerHtml.write(' touch-action="pan-y"');
       }
     }
-    // disable-zoom
+
+    // Add disable-zoom attribute if true.
     if (disableZoom ?? false) {
       modelViewerHtml.write(' disable-zoom');
     }
-    // orbit-sensitivity
+
+    // Add orbit-sensitivity attribute if provided.
     if (orbitSensitivity != null) {
       modelViewerHtml.write(' orbit-sensitivity="$orbitSensitivity"');
     }
-    // auto-rotate
+
+    // Add auto-rotate attribute if true.
     if (autoRotate ?? false) {
       modelViewerHtml.write(' auto-rotate');
     }
-    // auto-rotate-delay
+
+    // Add auto-rotate-delay attribute if provided.
     if (autoRotateDelay != null) {
       modelViewerHtml.write(' auto-rotate-delay="$autoRotateDelay"');
     }
-    // rotation-per-second
+
+    // Add rotation-per-second attribute if provided.
     if (rotationPerSecond != null) {
       modelViewerHtml.write(
         ' rotation-per-second="${htmlEscape.convert(rotationPerSecond)}"',
       );
     }
-    // interaction-prompt
+
+    // Add interaction-prompt attribute if provided.
     if (interactionPrompt != null) {
       switch (interactionPrompt) {
         case InteractionPrompt.auto:
@@ -223,7 +254,8 @@ abstract class HTMLBuilder {
           modelViewerHtml.write(' interaction-prompt="when-focused"');
       }
     }
-    // interaction-prompt-style
+
+    // Add interaction-prompt-style attribute if provided.
     if (interactionPromptStyle != null) {
       switch (interactionPromptStyle) {
         case InteractionPromptStyle.basic:
@@ -232,7 +264,8 @@ abstract class HTMLBuilder {
           modelViewerHtml.write(' interaction-prompt-style="wiggle"');
       }
     }
-    // interaction-prompt-threshold
+
+    // Add interaction-prompt-threshold attribute if provided.
     if (interactionPromptThreshold != null) {
       if (interactionPromptThreshold < 0) {
         throw RangeError('interaction-prompt-threshold must be >= 0');
@@ -240,42 +273,50 @@ abstract class HTMLBuilder {
       modelViewerHtml
           .write(' interaction-prompt-threshold="$interactionPromptThreshold"');
     }
-    // camera-orbit
+
+    // Add camera-orbit attribute if provided.
     if (cameraOrbit != null) {
       modelViewerHtml
           .write(' camera-orbit="${htmlEscape.convert(cameraOrbit)}"');
     }
-    // camera-target
+
+    // Add camera-target attribute if provided.
     if (cameraTarget != null) {
       modelViewerHtml
           .write(' camera-target="${htmlEscape.convert(cameraTarget)}"');
     }
-    // field-of-view
+
+    // Add field-of-view attribute if provided.
     if (fieldOfView != null) {
       modelViewerHtml
           .write(' field-of-view="${htmlEscape.convert(fieldOfView)}"');
     }
-    // max-camera-orbit
+
+    // Add max-camera-orbit attribute if provided.
     if (maxCameraOrbit != null) {
       modelViewerHtml
           .write(' max-camera-orbit="${htmlEscape.convert(maxCameraOrbit)}"');
     }
-    // min-camera-orbit
+
+    // Add min-camera-orbit attribute if provided.
     if (minCameraOrbit != null) {
       modelViewerHtml
           .write(' min-camera-orbit="${htmlEscape.convert(minCameraOrbit)}"');
     }
-    // max-field-of-view
+
+    // Add max-field-of-view attribute if provided.
     if (maxFieldOfView != null) {
       modelViewerHtml
           .write(' max-field-of-view="${htmlEscape.convert(maxFieldOfView)}"');
     }
-    // min-field-of-view
+
+    // Add min-field-of-view attribute if provided.
     if (minFieldOfView != null) {
       modelViewerHtml
           .write(' min-field-of-view="${htmlEscape.convert(minFieldOfView)}"');
     }
-    // interpolation-decay
+
+    // Add interpolation-decay attribute if provided.
     if (interpolationDecay != null) {
       if (interpolationDecay <= 0) {
         throw RangeError('interaction-decay must be greater than 0');
@@ -284,107 +325,126 @@ abstract class HTMLBuilder {
     }
 
     // Lighting & Env Attributes
-    // skybox-image
+    // Add skybox-image attribute if provided.
     if (skyboxImage != null) {
       modelViewerHtml
           .write(' skybox-image="${htmlEscape.convert(skyboxImage)}"');
     }
-    // environment-image
+
+    // Add environment-image attribute if provided.
     if (environmentImage != null) {
       modelViewerHtml.write(
         ' environment-image="${htmlEscape.convert(environmentImage)}"',
       );
     }
-    // exposure
+
+    // Add exposure attribute if provided.
     if (exposure != null) {
       if (exposure < 0) {
         throw RangeError('exposure must be any positive value');
       }
       modelViewerHtml.write(' exposure="$exposure"');
     }
-    // shadow-intensity
+
+    // Add shadow-intensity attribute if provided.
     if (shadowIntensity != null) {
       if (shadowIntensity < 0 || shadowIntensity > 1) {
         throw RangeError('shadow-intensity must be between 0 and 1');
       }
-      modelViewerHtml.write(' shadow-intensity="$shadowIntensity}"');
+      modelViewerHtml.write(' shadow-intensity="$shadowIntensity"');
     }
-    // shadow-softness
+
+    // Add shadow-softness attribute if provided.
     if (shadowSoftness != null) {
       if (shadowSoftness < 0 || shadowSoftness > 1) {
         throw RangeError('shadow-softness must be between 0 and 1');
       }
-      modelViewerHtml.write(' shadow-softness="$shadowSoftness}"');
+      modelViewerHtml.write(' shadow-softness="$shadowSoftness"');
     }
 
     // Animation Attributes
-    // animation-name
+    // Add animation-name attribute if provided.
     if (animationName != null) {
       modelViewerHtml
           .write(' animation-name="${htmlEscape.convert(animationName)}"');
     }
-    // animation-crossfade-duration
+
+    // Add animation-crossfade-duration attribute if provided.
     if (animationCrossfadeDuration != null) {
       if (animationCrossfadeDuration < 0) {
-        throw RangeError('shadow-softness must be any number >= 0');
+        throw RangeError(
+            'animation-crossfade-duration must be any number >= 0');
       }
-      modelViewerHtml
-          .write(' animation-crossfade-duration="$animationCrossfadeDuration"');
+      modelViewerHtml.write(
+        ' animation-crossfade-duration="$animationCrossfadeDuration"',
+      );
     }
-    // autoplay
+
+    // Add autoplay attribute if true.
     if (autoPlay ?? false) {
       modelViewerHtml.write(' autoplay');
     }
 
     // Scene Graph Attributes
-    // variant-name
+    // Add variant-name attribute if provided.
     if (variantName != null) {
       modelViewerHtml
           .write(' variant-name="${htmlEscape.convert(variantName)}"');
     }
-    // orientation
+
+    // Add orientation attribute if provided.
     if (orientation != null) {
       modelViewerHtml
           .write(' orientation="${htmlEscape.convert(orientation)}"');
     }
-    // scale
+
+    // Add scale attribute if provided.
     if (scale != null) {
       modelViewerHtml.write(' scale="${htmlEscape.convert(scale)}"');
     }
 
     // Styles
+    // Add CSS styles for background color.
     modelViewerHtml
       ..write(' style="')
-      // CSS Styles
       ..write(
         'background-color: rgba(${backgroundColor.red}, ${backgroundColor.green}, ${backgroundColor.blue}, ${backgroundColor.alpha}); ',
       );
 
     // Annotations CSS
-    // --min-hotspot-opacity
+    // Add min-hotspot-opacity style if provided.
     if (minHotspotOpacity != null) {
       if (minHotspotOpacity > 1 || minHotspotOpacity < 0) {
         throw RangeError('--min-hotspot-opacity must be between 0 and 1');
       }
       modelViewerHtml.write('min-hotspot-opacity: $minHotspotOpacity; ');
     }
-    // --max-hotspot-opacity
+
+    // Add max-hotspot-opacity style if provided.
     if (maxHotspotOpacity != null) {
       if (maxHotspotOpacity > 1 || maxHotspotOpacity < 0) {
         throw RangeError('--max-hotspot-opacity must be between 0 and 1');
       }
       modelViewerHtml.write('max-hotspot-opacity: $maxHotspotOpacity; ');
     }
-    modelViewerHtml.write('"'); // close style
 
+    modelViewerHtml.write('"'); // Close the style attribute.
+
+    // Add the id attribute.
     modelViewerHtml.write(' id="${htmlEscape.convert(id)}"');
 
-    modelViewerHtml.writeln('>'); // close the previous tag of omodel-viewer
+    // Close the opening tag for <model-viewer>.
+    modelViewerHtml.writeln('>');
+
+    // Add inner HTML if provided.
     if (innerModelViewerHtml != null) {
       modelViewerHtml.writeln(innerModelViewerHtml);
     }
+
+    // Close the <model-viewer> element.
     modelViewerHtml.writeln('</model-viewer>');
 
+    // Add related JavaScript if provided.
     if (relatedJs != null) {
       modelViewerHtml
         ..writeln('<script>')
@@ -392,16 +452,21 @@ abstract class HTMLBuilder {
         ..writeln('</script>');
     }
 
+    // Print debug information if debug logging is enabled.
     if (debugLogging ?? false) {
       debugPrint('HTML generated for model_viewer_plus:');
     }
+
+    // Replace the body placeholder in the HTML template with the generated model viewer HTML.
     final html =
         htmlTemplate.replaceFirst('<!-- body -->', modelViewerHtml.toString());
 
+    // Print the final HTML if debug logging is enabled.
     if (debugLogging ?? false) {
       debugPrint(html);
     }
 
+    // Return the final HTML string.
     return html;
   }
 }

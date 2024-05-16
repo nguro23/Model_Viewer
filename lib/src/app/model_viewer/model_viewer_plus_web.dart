@@ -9,29 +9,35 @@ import '../fake/dart_ui_fake.dart' if (dart.library.html) 'dart:ui_web'
     as ui_web;
 import 'o3d_model_viewer.dart';
 
+// The state class for the O3DModelViewer widget.
 class ModelViewerState extends State<O3DModelViewer> {
-  bool _isLoading = true;
+  bool _isLoading = true; // Indicates if the model viewer is still loading.
 
   @override
   void initState() {
     super.initState();
+    // Generate the HTML for the model viewer asynchronously.
     unawaited(generateModelViewerHtml());
   }
 
   /// To generate the HTML code for using the model viewer.
   Future<void> generateModelViewerHtml() async {
+    // Load the HTML template from the assets.
     final htmlTemplate =
         await rootBundle.loadString('packages/o3d/assets/template.html');
 
-    // allow to use elements
+    // Allow the use of elements.
     final NodeValidator validator =
         widget.overwriteNodeValidatorBuilder ?? defaultNodeValidatorBuilder;
 
+    // Build the HTML using the loaded template.
     final html = _buildHTML(htmlTemplate);
 
+    // Register the view factory for the model viewer.
     ui_web.platformViewRegistry.registerViewFactory(
       'babakcode-model-viewer-html-${widget.id}',
       (viewId) => HtmlHtmlElement()
+        // Set styles and inner HTML for the model viewer element.
         // ignore: avoid_dynamic_calls
         ..style.border = 'none'
         // ignore: avoid_dynamic_calls
@@ -41,6 +47,7 @@ class ModelViewerState extends State<O3DModelViewer> {
         ..setInnerHtml(html, validator: validator),
     );
 
+    // Update the loading state.
     setState(() {
       _isLoading = false;
     });
@@ -48,6 +55,7 @@ class ModelViewerState extends State<O3DModelViewer> {
 
   @override
   Widget build(final BuildContext context) {
+    // Display a loading indicator if the model viewer is still loading.
     return _isLoading
         ? const Center(
             child: CircularProgressIndicator(
@@ -60,6 +68,7 @@ class ModelViewerState extends State<O3DModelViewer> {
           );
   }
 
+  // Builds the HTML string for the model viewer using the provided template.
   String _buildHTML(final String htmlTemplate) {
     if (widget.src.startsWith('file://')) {
       // Local file URL can't be used in Flutter web.
@@ -86,7 +95,7 @@ class ModelViewerState extends State<O3DModelViewer> {
       // arPlacement: widget.arPlacement,
       iosSrc: widget.iosSrc,
       xrEnvironment: widget.xrEnvironment,
-      // Staing & Cameras Attributes
+      // Staging & Cameras Attributes
       cameraControls: widget.cameraControls,
       disablePan: widget.disablePan,
       disableTap: widget.disableTap,
@@ -139,6 +148,7 @@ class ModelViewerState extends State<O3DModelViewer> {
   }
 }
 
+// The default NodeValidatorBuilder allowing specific elements and attributes.
 NodeValidatorBuilder defaultNodeValidatorBuilder = NodeValidatorBuilder.common()
   ..allowElement(
     'meta',
@@ -224,6 +234,7 @@ NodeValidatorBuilder defaultNodeValidatorBuilder = NodeValidatorBuilder.common()
     uriPolicy: AllowAllUri(),
   );
 
+// A class to allow all URIs in the NodeValidator.
 class AllowAllUri implements UriPolicy {
   @override
   bool allowsUri(String uri) {
