@@ -1,4 +1,5 @@
-# O3D - Model Viewer for Flutter
+# Model Viewer for Flutter 
+## This package is built on top of the O3D package
 
 This is a [Flutter](https://flutter.dev) widget for rendering interactive
 3D models in the [glTF](https://www.khronos.org/gltf/) and [GLB](https://wiki.fileformat.com/3d/glb/) formats.
