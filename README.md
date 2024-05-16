@@ -40,7 +40,7 @@ in `pubspec.yaml`
 
 ```yaml
 dependencies:
-  model_viewer: ^1.0.0
+  model_viewer: ^3.1.1
 ```
 
 ### `AndroidManifest.xml` (Android 9+ only)

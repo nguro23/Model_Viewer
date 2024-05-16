@@ -1,6 +1,6 @@
 name: o3d
 description: The Flutter 3D objects easy controller ( glb format ) on mobile and web platforms
-version: 1.0.0
+version: 3.1.1
 homepage: https://github.com/nguro23/Model_Viewer
 topics:
   - "model"
