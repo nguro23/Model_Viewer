@@ -28,3 +28,7 @@ migrate_working_dir/
 .dart_tool/
 .packages
 build/
+
+# Exclude ephemeral plugin symlinks for Linux, but not url_launcher_linux
+linux/flutter/ephemeral/.plugin_symlinks/*
+!linux/flutter/ephemeral/.plugin_symlinks/url_launcher_linux
